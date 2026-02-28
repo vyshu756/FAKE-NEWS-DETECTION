@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Misinformation Intelligence - Fake News Detection Platform</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #8b5cf6;
+            --secondary-light: #a78bfa;
+            --success: #10b981;
+            --success-light: #34d399;
+            --danger: #ef4444;
+            --danger-light: #f87171;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --gray-light: #cbd5e1;
+            --white: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-gradient-animated: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.3);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* ===== Dark Mode Variables ===== */
+        [data-theme="dark"] {
+            --white: #0f172a;
+            --dark: #ffffff;
+            --dark-light: #f1f5f9;
+            --gray: #cbd5e1;
+            --gray-light: #475569;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ===== Reset & Base Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient-animated);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== Animated Gradient Background ===== */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ===== Particle Background ===== */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ===== Typography Scale ===== */
+        h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.02em; }
+        h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; letter-spacing: -0.01em; }
+        h3 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); font-weight: 600; }
+        h4 { font-size: clamp(1.125rem, 2vw, 1.25rem); font-weight: 600; }
+        p { font-size: clamp(0.875rem, 1.5vw, 1rem); line-height: 1.7; }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            transform: translateY(-2px);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(10deg) scale(1.1);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--bg-gradient);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link:hover::before {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::before {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.25rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--glass-border);
+            transform: rotate(20deg) scale(1.1);
+        }
+
+        .theme-toggle:active {
+            transform: rotate(20deg) scale(0.95);
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            margin-top: 80px;
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            font-weight: 400;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            background: white;
+            color: var(--primary);
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .cta-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-button:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== Main Container ===== */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== Two Column Layout ===== */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* ===== Enhanced Glassmorphism Card ===== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: var(--transition-bounce);
+        }
+
+        .glass-card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== Input Section ===== */
+        .input-wrapper {
+            position: relative;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--dark);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15),
+                        inset 0 2px 8px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .text-input::placeholder {
+            color: var(--gray);
+            opacity: 0.7;
+        }
+
+        .char-counter {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            color: var(--gray);
+            font-size: 0.875rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+            transition: width 0s, height 0s;
+        }
+
+        .btn > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: var(--bg-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--gray);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 1);
+            color: var(--dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        /* ===== Loading Spinner ===== */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== Result Section ===== */
+        .result-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            opacity: 0.4;
+            margin-bottom: 1rem;
+            animation: float-gentle 3s ease-in-out infinite;
+        }
+
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .result-content {
+            animation: fadeInScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeInScale {
+            from { 
+                opacity: 0; 
+                transform: scale(0.9);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+
+        /* ===== Prediction Badge ===== */
+        .prediction-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem 2rem;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 1.5rem 0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .badge-real {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge-fake {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        /* ===== Metrics Grid ===== */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: var(--transition);
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .metric-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--bg-gradient);
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ===== Keywords Section ===== */
+        .keywords-section {
+            margin: 2rem 0;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .keyword-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .keyword-tag {
+            padding: 0.625rem 1.25rem;
+            background: var(--bg-gradient);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+        }
+
+        .keyword-tag:nth-child(1) { animation-delay: 0.1s; }
+        .keyword-tag:nth-child(2) { animation-delay: 0.2s; }
+        .keyword-tag:nth-child(3) { animation-delay: 0.3s; }
+        .keyword-tag:nth-child(4) { animation-delay: 0.4s; }
+        .keyword-tag:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(-10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .keyword-tag::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .keyword-tag:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .keyword-tag:hover {
+            transform: translateY(-4px) scale(1.05) rotate(2deg);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+
+        .keyword-tag:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* ===== Interpretation Box ===== */
+        .interpretation-box {
+            background: rgba(219, 234, 254, 0.95);
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+            backdrop-filter: blur(10px);
+        }
+
+        .interpretation-box h4 {
+            color: #1e40af;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .interpretation-box p {
+            color: #1e3a8a;
+            line-height: 1.7;
+        }
+
+        /* ===== Analytics Dashboard ===== */
+        .analytics-section {
+            display: none;
+        }
+
+        .analytics-section.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--bg-gradient);
+            transform: scaleX(0);
+            transition: transform 0.5s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-gradient);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            transition: var(--transition-bounce);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== Toast Notification ===== */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transform: translateX(400px);
+            transition: var(--transition-bounce);
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            animation: slideInBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                transform: translateX(400px);
+            }
+            60% {
+                transform: translateX(-20px);
+            }
+            80% {
+                transform: translateX(10px);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 1024px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .navbar-container {
+                padding: 1rem;
+            }
+        }
+
+        /* ===== Scroll Animations ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== About Section ===== */
+        .about-section {
+            display: none;
+        }
+
+        .about-section.active {
+            display: block;
+        }
+
+        .about-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .about-content h2 {
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .about-content p {
+            color: var(--gray);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-item {
+            padding: 1.5rem;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 16px;
+            border-left: 4px solid var(--primary);
+            transition: var(--transition);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-item h3 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .feature-item p {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">🛡️</div>
+                <span>AI Misinformation Intelligence</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link active" onclick="showSection('home')">Home</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('analytics')">Analytics</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('about')">About</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    🌙
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>AI-Powered Fake News Detection</h1>
+        <p>Leverage advanced machine learning to verify news authenticity in real-time. Powered by fine-tuned BERT models.</p>
+        <button class="cta-button" onclick="scrollToAnalysis()">
+            <span>Analyze Now</span>
+            <span>→</span>
+        </button>
+    </section>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Home Section -->
+        <div id="homeSection" class="home-section">
+            <div class="analysis-grid fade-in">
+                <!-- Input Card -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-icon">📝</div>
+                        <h2 class="card-title">Input Article</h2>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="newsInput" 
+                            class="text-input"
+                            placeholder="Paste your news article here...&#10;&#10;Example: Scientists at NASA announced the discovery of water on Mars. The finding was confirmed by multiple independent research teams..."
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> characters
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeNews()">
+                            <span id="btnText">Analyze Article</span>
+                            <span id="btnIcon">🔍</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearInput()">
+                            <span>Clear</span>
+                            <span>🗑️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result Card -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h2 class="card-title">Analysis Result</h2>
+                    </div>
+                    <div id="resultContainer">
+                        <div class="result-empty">
+                            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <p>Results will appear here after analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analyticsSection" class="analytics-section">
+            <div class="stats-grid fade-in">
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value" id="totalAnalyses">0</div>
+                    <div class="stat-label">Total Analyses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="realNewsCount">0</div>
+                    <div class="stat-label">Real News Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="fakeNewsCount">0</div>
+                    <div class="stat-label">Fake News Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="accuracyRate">99.5%</div>
+                    <div class="stat-label">Accuracy Rate</div>
+                </div>
+            </div>
+
+            <div class="chart-container fade-in">
+                <h3 class="chart-title">Distribution Analysis</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+
+            <div class="chart-container fade-in">
+                <h3 class="chart-title">Daily Usage Trend</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div id="aboutSection" class="about-section">
+            <div class="about-content fade-in">
+                <h2>About AI Misinformation Intelligence</h2>
+                <p>
+                    Our platform leverages state-of-the-art artificial intelligence to combat misinformation 
+                    in real-time. Using a fine-tuned BERT (Bidirectional Encoder Representations from Transformers) 
+                    model, we analyze news articles with unprecedented accuracy.
+                </p>
+                <p>
+                    The system provides not just predictions, but explainable AI insights, showing you exactly 
+                    which keywords influenced the decision. This transparency ensures you can trust and understand 
+                    our AI's reasoning.
+                </p>
+
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h3>🤖 Advanced AI</h3>
+                        <p>Fine-tuned BERT model with 99%+ accuracy</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>⚡ Real-time Analysis</h3>
+                        <p>Get results in 2-3 seconds</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🔍 Explainable AI</h3>
+                        <p>See which keywords influenced the decision</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>📊 Analytics Dashboard</h3>
+                        <p>Track usage and detection patterns</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🔒 Privacy First</h3>
+                        <p>No personal data collection</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🌐 API Access</h3>
+                        <p>RESTful API for integration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script>
+        // ===== Configuration =====
+        const API_URL = 'http://localhost:8000';
+        let pieChart = null;
+        let lineChart = null;
+
+        // ===== Particle Background =====
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.width = particle.style.height = (Math.random() * 3 + 2) + 'px';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // ===== Animated Counter =====
+        function animateCounter(element, target, duration = 1500) {
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = Math.round(target);
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.round(current);
+                }
+            }, 16);
+        }
+
+        // ===== Navbar Scroll Effect =====
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // ===== Character Counter =====
+        document.getElementById('newsInput').addEventListener('input', function(e) {
+            document.getElementById('charCount').textContent = e.target.value.length;
+        });
+
+        // ===== Theme Toggle =====
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            
+            const themeToggle = document.querySelector('.theme-toggle');
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // ===== Section Navigation =====
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('homeSection').style.display = 'none';
+            document.getElementById('analyticsSection').classList.remove('active');
+            document.getElementById('aboutSection').classList.remove('active');
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected section
+            if (section === 'home') {
+                document.getElementById('homeSection').style.display = 'block';
+                document.querySelectorAll('.nav-link')[0].classList.add('active');
+            } else if (section === 'analytics') {
+                document.getElementById('analyticsSection').classList.add('active');
+                document.querySelectorAll('.nav-link')[1].classList.add('active');
+                loadAnalytics();
+            } else if (section === 'about') {
+                document.getElementById('aboutSection').classList.add('active');
+                document.querySelectorAll('.nav-link')[2].classList.add('active');
+            }
+            
+            // Trigger scroll animations
+            triggerScrollAnimations();
+        }
+
+        // ===== Scroll to Analysis =====
+        function scrollToAnalysis() {
+            document.querySelector('.analysis-grid').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+            document.getElementById('newsInput').focus();
+        }
+
+        // ===== Analyze News =====
+        async function analyzeNews() {
+            const input = document.getElementById('newsInput').value.trim();
+            const resultContainer = document.getElementById('resultContainer');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            
+            if (!input) {
+                showToast('Please enter some text to analyze', 'error');
+                return;
+            }
+            
+            // Show loading state
+            analyzeBtn.disabled = true;
+            btnText.textContent = 'Analyzing...';
+            btnIcon.innerHTML = '<div class="spinner"></div>';
+            
+            resultContainer.innerHTML = `
+                <div class="result-empty">
+                    <div class="spinner" style="width: 60px; height: 60px; border-width: 5px;"></div>
+                    <p style="margin-top: 1rem;">Analyzing with AI...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: input })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to analyze text');
+                }
+                
+                const data = await response.json();
+                displayResult(data);
+                showToast('Analysis completed successfully!', 'success');
+            } catch (error) {
+                resultContainer.innerHTML = `
+                    <div class="interpretation-box" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left-color: #ef4444;">
+                        <h4 style="color: #991b1b;">⚠️ Connection Error</h4>
+                        <p style="color: #7f1d1d;">
+                            Could not connect to the API. Please ensure the backend server is running:
+                            <br><br>
+                            <code style="background: white; padding: 0.5rem; border-radius: 6px; display: block; margin-top: 0.5rem;">python main.py</code>
+                            <br>
+                            Server should be running at: <strong>${API_URL}</strong>
+                        </p>
+                    </div>
+                `;
+                showToast('Failed to connect to API', 'error');
+            } finally {
+                analyzeBtn.disabled = false;
+                btnText.textContent = 'Analyze Article';
+                btnIcon.textContent = '🔍';
+            }
+        }
+
+        // ===== Display Result =====
+        function displayResult(data) {
+            const isFake = data.prediction === 'Fake News';
+            const confidencePercent = (data.confidence_score * 100).toFixed(2);
+            
+            const resultHTML = `
+                <div class="result-content">
+                    <div style="text-align: center;">
+                        <div class="prediction-badge ${isFake ? 'badge-fake' : 'badge-real'}">
+                            <span>${isFake ? '⚠️' : '✅'}</span>
+                            <span>${data.prediction}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Confidence Score</div>
+                            <div class="metric-value" id="confidenceValue">0</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%" id="confidenceBar"></div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Credibility Score</div>
+                            <div class="metric-value" id="credibilityValue">0</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%" id="credibilityBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${data.important_keywords && data.important_keywords.length > 0 ? `
+                        <div class="keywords-section">
+                            <h3 class="section-title">
+                                <span>🔑</span>
+                                <span>Key Influential Words</span>
+                            </h3>
+                            <div class="keyword-tags">
+                                ${data.important_keywords.map(keyword => 
+                                    `<span class="keyword-tag">${keyword}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="interpretation-box">
+                        <h4>
+                            <span>💡</span>
+                            <span>AI Interpretation</span>
+                        </h4>
+                        <p>${isFake 
+                            ? 'Our AI model has detected patterns commonly associated with misinformation. We recommend verifying this information through multiple trusted sources before sharing.'
+                            : 'The article appears to be legitimate based on our AI analysis. However, always cross-reference important information with multiple reliable sources for complete verification.'
+                        }</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resultContainer').innerHTML = resultHTML;
+            
+            // Animate counters and progress bars
+            setTimeout(() => {
+                const confidenceValueEl = document.getElementById('confidenceValue');
+                const credibilityValueEl = document.getElementById('credibilityValue');
+                const confidenceBarEl = document.getElementById('confidenceBar');
+                const credibilityBarEl = document.getElementById('credibilityBar');
+                
+                if (confidenceValueEl) {
+                    animateCounter(confidenceValueEl, parseFloat(confidencePercent));
+                    confidenceValueEl.textContent = confidencePercent + '%';
+                }
+                
+                if (credibilityValueEl) {
+                    animateCounter(credibilityValueEl, data.credibility_score);
+                }
+                
+                if (confidenceBarEl) {
+                    setTimeout(() => {
+                        confidenceBarEl.style.width = confidencePercent + '%';
+                    }, 100);
+                }
+                
+                if (credibilityBarEl) {
+                    setTimeout(() => {
+                        credibilityBarEl.style.width = data.credibility_score + '%';
+                    }, 100);
+                }
+            }, 100);
+        }
+
+        // ===== Clear Input =====
+        function clearInput() {
+            document.getElementById('newsInput').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('resultContainer').innerHTML = `
+                <div class="result-empty">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>Results will appear here after analysis</p>
+                </div>
+            `;
+            showToast('Input cleared', 'success');
+        }
+
+        // ===== Load Analytics =====
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_URL}/analytics`);
+                if (!response.ok) throw new Error('Failed to fetch analytics');
+                
+                const data = await response.json();
+                
+                // Animate stats with counters
+                const totalEl = document.getElementById('totalAnalyses');
+                const realEl = document.getElementById('realNewsCount');
+                const fakeEl = document.getElementById('fakeNewsCount');
+                
+                if (totalEl) animateCounter(totalEl, data.total_predictions);
+                if (realEl) animateCounter(realEl, data.real_news_count);
+                if (fakeEl) animateCounter(fakeEl, data.fake_news_count);
+                
+                // Create pie chart
+                createPieChart(data);
+                
+                // Create line chart
+                createLineChart();
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                showToast('Failed to load analytics data', 'error');
+            }
+        }
+
+        // ===== Create Pie Chart =====
+        function createPieChart(data) {
+            const ctx = document.getElementById('pieChart');
+            
+            if (pieChart) {
+                pieChart.destroy();
+            }
+            
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Real News', 'Fake News'],
+                    datasets: [{
+                        data: [data.real_news_count, data.fake_news_count],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== Create Line Chart =====
+        function createLineChart() {
+            const ctx = document.getElementById('lineChart');
+            
+            if (lineChart) {
+                lineChart.destroy();
+            }
+            
+            // Sample data - replace with real data from API
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const data = [12, 19, 15, 25, 22, 30, 28];
+            
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Daily Analyses',
+                        data: data,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== Toast Notification =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toast.className = `toast toast-${type}`;
+            toastIcon.textContent = type === 'success' ? '✓' : '⚠';
+            toastMessage.textContent = message;
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ===== Scroll Animations =====
+        function triggerScrollAnimations() {
+            const elements = document.querySelectorAll('.fade-in');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            elements.forEach(el => observer.observe(el));
+        }
+
+        // ===== Keyboard Shortcuts =====
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to analyze
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                analyzeNews();
+            }
+            // Escape to clear
+            if (e.key === 'Escape') {
+                clearInput();
+            }
+        });
+
+        // ===== Initialize =====
+        window.addEventListener('load', function() {
+            // Create particle background
+            createParticles();
+            
+            // Trigger scroll animations
+            triggerScrollAnimations();
+            
+            // Add visible class to hero elements
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in').forEach(el => {
+                    el.classList.add('visible');
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
